@@ -1,28 +1,10 @@
 #########################################################################################################################
-### Project  : Dynamic Network DEA with distributable carryovers
-### Script   : DNDEA on GIT.R
-### Contents : Non-cooperative model with dynamic carryovers
-#########################################################################################################################
-
-#########################################################################################################################
-### Setting up environment
-#########################################################################################################################
-
-# Load library
-pkgs <- c("DJL")
-sapply(pkgs, require, character.only = T)
-
-# Load data & parameters
-load("RI.14.18.Rdata")
-
-
-#########################################################################################################################
 ### DNDEA - max.cp of 2
 #########################################################################################################################
 
 dm.dynamic.network <- function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL, ydata.s2, 
                                rts = "crs", orientation = "i", type = "nc", leader = "1st", 
-                               alpha = 1, max.cp = 0, t.w = NULL, o = NULL, exhaust = T){
+                               alpha = 1, max.cp = 0, LB = NULL, UB = NULL, t.w = NULL, o = NULL, exhaust = T){
   
   # Initial checks
   if(is.na(match(rts, c("crs", "vrs", "irs", "drs"))))          stop('rts must be "crs", "vrs", "irs", or "drs".')
@@ -227,7 +209,21 @@ dm.dynamic.network <- function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL
             if(isTRUE(exhaust) & i == (t - 1)){add.constraint(lp.s2, c(1), indices = c(id.c[(i-1)*p + j]), "=", 0)}
             
             # p = a for the last period when exhaust is T
-            if(isTRUE(exhaust) & i ==  t     ){add.constraint(lp.s2, c(1, -1), indices = c(id.p[(i-1)*p + j], id.a[(i-1)*p + j]), "=", 0)}  
+            if(isTRUE(exhaust) & i ==  t     ){add.constraint(lp.s2, c(1, -1), indices = c(id.p[(i-1)*p + j], id.a[(i-1)*p + j]), "=", 0)}
+            
+            # p*LB <= a, b, c when LB is imposed
+            
+            if(!is.null(LB)){
+              for(j in 1:p){
+                add.constraint(lp.s2, c(LB[1], -1), 
+                               indices = c(id.p[(i-1)*p + j], id.a[(i-1)*p + j]), "<=", 0)    
+                add.constraint(lp.s2, c(LB[2], -1), 
+                               indices = c(id.p[(i-1)*p + j], id.b[(i-1)*p + j]), "<=", 0)
+                add.constraint(lp.s2, c(LB[3], -1), 
+                               indices = c(id.p[(i-1)*p + j], id.c[(i-1)*p + j]), "<=", 0)    
+              }
+            }
+            
           }
         }else if(is.numeric(alpha)){
           for(j in 1:p){
@@ -269,16 +265,14 @@ dm.dynamic.network <- function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL
     }
     
     # Bounds
-    if(rts == "vrs"){
-      temp <- rep(0, no.dv.t * t)
-      temp[c(id.w.s1, id.w.s2)] <- -Inf
-      set.bounds(lp.s2, lower = temp)  
-    }
+    temp.lb <- rep(0, no.dv.t * t)
+    if(rts == "vrs"){temp.lb[c(id.w.s1, id.w.s2)] <- -Inf}
+    set.bounds(lp.s2, lower = temp.lb)  
     
     # Solve
     solve.lpExtPtr(lp.s2)
     
-    # Plan B
+    # Plan B for multiple optima
     if(solve.lpExtPtr(lp.s2) == 3){
       for(i in 1:t){
         # v1x1 = 1 for DMU o
@@ -322,36 +316,3 @@ dm.dynamic.network <- function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL
                   p = res.p, a = res.a, b = res.b, c = res.c, alpha = res.a/res.p, beta = res.b/res.p, gamma = res.c/res.p)
   return(results)
 }
-
-
-#########################################################################################################################
-### Analysis
-#########################################################################################################################
-
-# Descriptive Stats
-table.1 <- data.frame(Min  = unlist(aggregate(df.2d[, c(id.x, id.y) + 3], by = list(df.2d$Location), "min")),
-                      Med  = unlist(aggregate(df.2d[, c(id.x, id.y) + 3], by = list(df.2d$Location), "median")),
-                      Mean = unlist(aggregate(df.2d[, c(id.x, id.y) + 3], by = list(df.2d$Location), "mean")),
-                      Max  = unlist(aggregate(df.2d[, c(id.x, id.y) + 3], by = list(df.2d$Location), "max")),
-                      Std  = unlist(aggregate(df.2d[, c(id.x, id.y) + 3], by = list(df.2d$Location), "sd")))
-
-print(cbind(Loc  = rep(levels(loc), 3), format(round(table.1[-c(1:3),]), big.mark = ",")))
-
-# Toy model
-id.toy  <- c(6, 16, 18, 19, 20)
-res.toy <- dm.dynamic.network(df.3d[id.toy,id.x.s1,1:3], df.3d[id.toy,id.y.s1,1:3], df.3d[id.toy,id.z,1:3, drop = F], 
-                              df.3d[id.toy,id.x.s2,1:3], df.3d[id.toy,id.y.s2,1:3,drop = F], rts, ori, alpha = "free")
-
-
-# DNDEA
-res.100  <- dm.dynamic.network(df.3d[,id.x.s1,], df.3d[,id.y.s1,], df.3d[,id.z,, drop = F], 
-                                     df.3d[,id.x.s2,], df.3d[,id.y.s2,,drop = F], rts, ori, alpha = c(1, 0, 0))
-
-res.532  <- dm.dynamic.network(df.3d[,id.x.s1,], df.3d[,id.y.s1,], df.3d[,id.z,, drop = F], 
-                                     df.3d[,id.x.s2,], df.3d[,id.y.s2,,drop = F], rts, ori, alpha = c(0.5, 0.3, 0.2))
-
-res.free <- dm.dynamic.network(df.3d[,id.x.s1,], df.3d[,id.y.s1,], df.3d[,id.z,, drop = F], 
-                                     df.3d[,id.x.s2,], df.3d[,id.y.s2,,drop = F], rts, ori, alpha = "free")
-
-data.frame(No.Split = res.100$eff.sys, Static.Split = res.532$eff.sys, Free.Split = res.free$eff.sys)
-
