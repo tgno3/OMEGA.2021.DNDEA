@@ -54,7 +54,10 @@ res.dndea.ss <- dm.dynamic.network(df.3d[,id.x.s1,], df.3d[,id.y.s1,], df.3d[,id
                                    df.3d[,id.x.s2,], df.3d[,id.y.s2,], rts, alpha = c(0.4, 0.4, 0.2))
 
 res.dndea.ds <- dm.dynamic.network(df.3d[,id.x.s1,], df.3d[,id.y.s1,], df.3d[,id.z,], 
-                                   df.3d[,id.x.s2,], df.3d[,id.y.s2,], rts, alpha = "free", max.cp = 2, LB = c(0.2,0,0))
+                                     df.3d[,id.x.s2,], df.3d[,id.y.s2,], rts, alpha = "free", max.cp = 2)
+
+res.dndea.ds.b <- dm.dynamic.network(df.3d[,id.x.s1,], df.3d[,id.y.s1,], df.3d[,id.z,], 
+                                   df.3d[,id.x.s2,], df.3d[,id.y.s2,], rts, alpha = "free", max.cp = 2, LB = c(0.2,0.2,0.1))
 
 # Comparison of composite indicies
 res.ns.c.index <- (res.dndea.ns$eff.s1 + res.dndea.ns$eff.s2) * 0.5

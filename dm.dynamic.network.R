@@ -30,6 +30,8 @@ dm.dynamic.network <- function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL
   o        <- if(is.null(o))  c(1:n) else as.vector(o)
   #alpha    <- if(max.cp == 0) c(1)   else alpha
   max.cp   <- ifelse(is.numeric(alpha), length(alpha) - 1, max.cp)
+  LB       <- if(is.null(LB)) rep(0, max.cp) else LB[1:(max.cp + 1)]
+  UB       <- if(is.null(UB)) rep(1, max.cp) else UB[1:(max.cp + 1)]
   t        <- dim(xdata.s1)[3]
   t.w      <- if(is.null(t.w)) rep(1, t)
   
@@ -80,6 +82,12 @@ dm.dynamic.network <- function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL
     }
   }
 
+  # Bounds and indices
+  if(!is.null(LB)){ # Assuming a single carrryover at this point
+    LB.all <- array(LB, c(1, length(LB), t))
+    id.all <- array(c(id.a, id.b, id.c), c(1, t, (max.cp + 1) * p))
+  } 
+  
   # LP  
   for(k in o){
     # Declare LP
@@ -203,27 +211,29 @@ dm.dynamic.network <- function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL
                                        indices = c(id.p[(i-1)*p + j], id.a[(i-1)*p + j], id.b[(i-1)*p + j], id.c[(i-1)*p + j]), "=", 0)
             
             # b & c == 0 when no carry-over
-            if(max.cp == 0){add.constraint(lp.s2, rep(1, length(c(id.b, id.c))), indices = c(id.b, id.c), "=", 0)}
-            
-            # c = 0 for the period second to the last when exhaust is T
-            if(isTRUE(exhaust) & i == (t - 1)){add.constraint(lp.s2, c(1), indices = c(id.c[(i-1)*p + j]), "=", 0)}
-            
-            # p = a for the last period when exhaust is T
-            if(isTRUE(exhaust) & i ==  t     ){add.constraint(lp.s2, c(1, -1), indices = c(id.p[(i-1)*p + j], id.a[(i-1)*p + j]), "=", 0)}
-            
-            # p*LB <= a, b, c when LB is imposed
-            
-            if(!is.null(LB)){
-              for(j in 1:p){
-                add.constraint(lp.s2, c(LB[1], -1), 
-                               indices = c(id.p[(i-1)*p + j], id.a[(i-1)*p + j]), "<=", 0)    
-                add.constraint(lp.s2, c(LB[2], -1), 
-                               indices = c(id.p[(i-1)*p + j], id.b[(i-1)*p + j]), "<=", 0)
-                add.constraint(lp.s2, c(LB[3], -1), 
-                               indices = c(id.p[(i-1)*p + j], id.c[(i-1)*p + j]), "<=", 0)    
-              }
+            if(max.cp == 0){
+              add.constraint(lp.s2, rep(1, length(c(id.b, id.c))), indices = c(id.b, id.c), "=", 0)
+              if(!is.null(LB)){LB.all[j, 2:3, i] <- 0}
             }
             
+            # c = 0 for the period second to the last when exhaust is T
+            if(isTRUE(exhaust) & i == (t - 1)){
+              add.constraint(lp.s2, c(1), indices = c(id.c[(i-1)*p + j]), "=", 0)
+              if(!is.null(LB)){LB.all[j, 3, i] <- 0}
+            }
+            
+            # p = a for the last period when exhaust is T
+            if(isTRUE(exhaust) & i ==  t     ){
+              add.constraint(lp.s2, c(1, -1), indices = c(id.p[(i-1)*p + j], id.a[(i-1)*p + j]), "=", 0)
+              if(!is.null(LB)){LB.all[j,,i] <- 0}
+            }
+            
+            # p*LB <= a, b, c when LB is imposed
+            if(!is.null(LB)){
+              for(b in 1:(max.cp + 1)){
+                add.constraint(lp.s2, c(LB.all[1, b, i], -1), indices = c(id.p[(i-1)*p + j], id.all[1, i, b]), "<=", 0)  
+              }
+            }
           }
         }else if(is.numeric(alpha)){
           for(j in 1:p){
