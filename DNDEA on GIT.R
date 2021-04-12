@@ -47,39 +47,55 @@ table.3 <- data.frame(Min  = apply(df.3d, 2, "min"),
 
 
 # DNDEA
+t.w <- c(0.1,0.2,0.4,0.2,0.1)
 res.dndea.ns <- dm.dynamic.network(df.3d[,id.x.s1,], df.3d[,id.y.s1,], df.3d[,id.z,], 
-                                   df.3d[,id.x.s2,], df.3d[,id.y.s2,], rts)
+                                   df.3d[,id.x.s2,], df.3d[,id.y.s2,], rts, t.w = t.w)
 
 res.dndea.ss <- dm.dynamic.network(df.3d[,id.x.s1,], df.3d[,id.y.s1,], df.3d[,id.z,], 
-                                   df.3d[,id.x.s2,], df.3d[,id.y.s2,], rts, alpha = c(0.4, 0.4, 0.2))
+                                   df.3d[,id.x.s2,], df.3d[,id.y.s2,], rts, alpha = c(0.4, 0.4, 0.2), t.w = t.w)
 
-res.dndea.ds <- dm.dynamic.network(df.3d[,id.x.s1,], df.3d[,id.y.s1,], df.3d[,id.z,], 
-                                     df.3d[,id.x.s2,], df.3d[,id.y.s2,], rts, alpha = "free", max.cp = 2)
+res.dndea.ds <- dm.dynamic.network(df.3d[,id.x.s1,], df.3d[,id.y.s1,], df.3d[,id.z,],
+                                   df.3d[,id.x.s2,], df.3d[,id.y.s2,], rts, alpha = "free", max.cp = 2, t.w = t.w)
 
-res.dndea.ds.b <- dm.dynamic.network(df.3d[,id.x.s1,], df.3d[,id.y.s1,], df.3d[,id.z,], 
-                                   df.3d[,id.x.s2,], df.3d[,id.y.s2,], rts, alpha = "free", max.cp = 2, LB = c(0.2,0.2,0.1))
+res.dndea.bs <- dm.dynamic.network(df.3d[,id.x.s1,], df.3d[,id.y.s1,], df.3d[,id.z,], 
+                                   df.3d[,id.x.s2,], df.3d[,id.y.s2,], rts, alpha = "free", max.cp = 2, LB = c(0.2,0.2,0.0), t.w = t.w)
 
 # Comparison of composite indicies
+s.period <- 1:5
 res.ns.c.index <- (res.dndea.ns$eff.s1 + res.dndea.ns$eff.s2) * 0.5
 res.ss.c.index <- (res.dndea.ss$eff.s1 + res.dndea.ss$eff.s2) * 0.5
 res.ds.c.index <- (res.dndea.ds$eff.s1 + res.dndea.ds$eff.s2) * 0.5
-data.frame(No.Split      = apply(res.ns.c.index[,,1:5], 1, "mean"),
-           Static.Split  = apply(res.ss.c.index[,,1:5], 1, "mean"),
-           Dynamic.Split = apply(res.ds.c.index[,,1:5], 1, "mean"))
+res.bs.c.index <- (res.dndea.bs$eff.s1 + res.dndea.bs$eff.s2) * 0.5
+# Composite Index
+data.frame(No.Split      = apply(res.ns.c.index[,,s.period], 1, "mean"),
+           Static.Split  = apply(res.ss.c.index[,,s.period], 1, "mean"),
+           Dynamic.Split = apply(res.ds.c.index[,,s.period], 1, "mean"),
+           Bounded.Split = apply(res.bs.c.index[,,s.period], 1, "mean"),
+           Diff.NS.BS    = round(apply(res.bs.c.index[,,s.period], 1, "mean") - apply(res.ns.c.index[,,s.period], 1, "mean"), 2),
+           Diff.SS.BS    = round(apply(res.bs.c.index[,,s.period], 1, "mean") - apply(res.ss.c.index[,,s.period], 1, "mean"), 2),
+           Diff.DS.BS    = round(apply(res.bs.c.index[,,s.period], 1, "mean") - apply(res.ds.c.index[,,s.period], 1, "mean"), 2))
 
-data.frame(No.split      = res.dndea.ns$eff.s2[,,3],
-           Static.split  = res.dndea.ss$eff.s2[,,3],
-           Dynamic.split = res.dndea.ds$eff.s2[,,3],
-           Diff          = round(res.dndea.ds$eff.s2[,,3] - res.dndea.ns$eff.s2[,,3], 2),
-           DS.win        = ifelse(res.dndea.ss$eff.s2[,,3] <= res.dndea.ds$eff.s2[,,3], 1, 0))
+# Stage 2 Eff
+data.frame(No.split      = apply(res.dndea.ns$eff.s2[,,s.period], 1, "mean"),
+           Static.split  = apply(res.dndea.ss$eff.s2[,,s.period], 1, "mean"),
+           Dynamic.split = apply(res.dndea.ds$eff.s2[,,s.period], 1, "mean"),
+           Bounded.split = apply(res.dndea.bs$eff.s2[,,s.period], 1, "mean"),
+           NS.vs.DS      = ifelse(apply(res.dndea.ns$eff.s2[,,s.period], 1, "mean") <= apply(res.dndea.ds$eff.s2[,,s.period], 1, "mean"), 1, 0),
+           Diff.NS.BS    = round(apply(res.dndea.bs$eff.s2[,,s.period], 1, "mean") - apply(res.dndea.ns$eff.s2[,,s.period], 1, "mean"), 2),
+           Diff.SS.BS    = round(apply(res.dndea.bs$eff.s2[,,s.period], 1, "mean") - apply(res.dndea.ss$eff.s2[,,s.period], 1, "mean"), 2),
+           Diff.DS.BS    = round(apply(res.dndea.bs$eff.s2[,,s.period], 1, "mean") - apply(res.dndea.ds$eff.s2[,,s.period], 1, "mean"), 2))
 
-data.frame(No.split      = apply(res.dndea.ns$eff.s2[,,1:5], 1, "mean"),
-           Static.split  = apply(res.dndea.ss$eff.s2[,,1:5], 1, "mean"),
-           Dynamic.split = apply(res.dndea.ds$eff.s2[,,1:5], 1, "mean"),
-           DS.win        = ifelse(apply(res.dndea.ss$eff.s2[,,1:5], 1, "mean") <= apply(res.dndea.ds$eff.s2[,,1:5], 1, "mean"), 1, 0),
-           Diff          = round(apply(res.dndea.ds$eff.s2[,,1:5], 1, "mean") - apply(res.dndea.ns$eff.s2[,,1:5], 1, "mean"), 2))
+s.period <- 3
+data.frame(No.split      = res.dndea.ns$eff.s2[,,s.period],
+           Static.split  = res.dndea.ss$eff.s2[,,s.period],
+           Dynamic.split = res.dndea.ds$eff.s2[,,s.period],
+           Bounded.split = res.dndea.bs$eff.s2[,,s.period],
+           NS.vs.BS      = ifelse(res.dndea.ns$eff.s2[,,s.period] <= res.dndea.bs$eff.s2[,,s.period], 1, 0),
+           Diff.NS.BS    = round(res.dndea.bs$eff.s2[,,s.period] - res.dndea.ns$eff.s2[,,s.period], 2),
+           Diff.SS.BS    = round(res.dndea.bs$eff.s2[,,s.period] - res.dndea.ss$eff.s2[,,s.period], 2),
+           Diff.DS.BS    = round(res.dndea.bs$eff.s2[,,s.period] - res.dndea.ds$eff.s2[,,s.period], 2))
 
-data.frame(Alpha = res.dndea.ds$alpha[,,1:3],
-           Beta  = res.dndea.ds$beta[,,1:3],
-           Gamma = res.dndea.ds$gamma[,,1:3])[,c(1, 4, 7, 2, 5, 8, 3, 6, 9)]
+data.frame(Alpha = res.dndea.bs$alpha[,,s.period],
+           Beta  = res.dndea.bs$beta[,,s.period],
+           Gamma = res.dndea.bs$gamma[,,s.period])
 
