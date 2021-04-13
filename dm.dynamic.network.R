@@ -30,10 +30,10 @@ dm.dynamic.network <- function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL
   o        <- if(is.null(o))  c(1:n) else as.vector(o)
   #alpha    <- if(max.cp == 0) c(1)   else alpha
   max.cp   <- ifelse(is.numeric(alpha), length(alpha) - 1, max.cp)
-  LB       <- if(is.null(LB)) rep(0, max.cp) else LB[1:(max.cp + 1)]
-  UB       <- if(is.null(UB)) rep(1, max.cp) else UB[1:(max.cp + 1)]
+  LB       <- if(is.null(LB)) rep(0, 3) else c(LB, rep(0, 3 - length(LB)))
+  UB       <- if(is.null(UB)) rep(1, 3) else c(UB, rep(1, 3 - length(UB)))
   t        <- dim(xdata.s1)[3]
-  t.w      <- if(is.null(t.w)) rep(1, t)
+  t.w      <- if(is.null(t.w)) rep(1, t) else c(t.w)
   
   # Data frames
   res.eff.sys <- array(NA, c(n,    1, t))
@@ -83,7 +83,7 @@ dm.dynamic.network <- function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL
   }
 
   # Bounds and indices
-  if(!is.null(LB)){ # Assuming a single carrryover at this point
+  if(!is.null(LB)){ # Assuming a single carrryover + max.cp of 3 at this point
     LB.all <- array(LB, c(1, length(LB), t))
     id.all <- array(c(id.a, id.b, id.c), c(1, t, (max.cp + 1) * p))
   } 
