@@ -71,7 +71,52 @@ table.5 <- data.frame(Name          = rownames(df.3d),
                       S2.overall.BS = apply(res.dndea.bs$eff.s2, 1, "mean"),
                       S2.2016.BS    = res.dndea.bs$eff.s2[,,3])
 
-  
+
+# Discussions
+# KIST and KRISS: BS.2016 < SS.2016 but BS.All > SS.All
+id.ex <- c(14, 20)
+data.frame(Eff.2016.SS = round(res.dndea.ss$eff.s2[id.ex,,3], 4),
+           Eff.2016.BS = round(res.dndea.bs$eff.s2[id.ex,,3], 4),
+           Eff.All.SS  = round(apply(res.dndea.ss$eff.s2[id.ex,,], 1, "mean"), 4),
+           Eff.All.BS  = round(apply(res.dndea.bs$eff.s2[id.ex,,], 1, "mean"), 4))
+
+
+# KICT: FS.2016 > BS.2016 > NS.2016 > SS.2016
+id.ex      <- c(8)
+data.frame(Eff.2016.NS = round(res.dndea.ss$eff.s2[id.ex,,3], 4),
+           Eff.2016.FS = round(res.dndea.fs$eff.s2[id.ex,,3], 4),
+           Eff.2016.BS = round(res.dndea.bs$eff.s2[id.ex,,3], 4))
+res.fs.pro <- data.frame(Alpha = res.dndea.fs$alpha[id.ex,,1:3],
+                         Beta  = res.dndea.fs$beta [id.ex,,1:3],
+                         Gamma = res.dndea.fs$gamma[id.ex,,1:3])
+res.bs.pro <- data.frame(Alpha = res.dndea.bs$alpha[id.ex,,1:3],
+                         Beta  = res.dndea.bs$beta [id.ex,,1:3],
+                         Gamma = res.dndea.bs$gamma[id.ex,,1:3])
+data.frame(Patent.actual = df.3d[id.ex, id.z, 3],
+           Patent.acc.ss = df.3d[id.ex, id.z, 1:3] %*% c(0.2,0.3,0.5),
+           Patent.acc.fs = df.3d[id.ex, id.z, 1:3] %*% c(res.fs.pro[1, 3], res.fs.pro[2, 2], res.fs.pro[3, 1]),
+           Patent.acc.bs = df.3d[id.ex, id.z, 1:3] %*% c(res.bs.pro[1, 3], res.bs.pro[2, 2], res.bs.pro[3, 1]))
+
+
+data.frame(Eff.2016.NS = round(table.5$S2.2016.NS, 4),
+           Eff.2016.SS = round(table.5$S2.2016.SS, 4),
+           Win         = round(table.5$S2.2016.SS - table.5$S2.2016.NS, 4))
+
+data.frame(Eff.2016.NS = round(table.5$S2.2016.NS, 4),
+           Eff.2016.FS = round(table.5$S2.2016.FS, 4),
+           Win         = round(table.5$S2.2016.FS - table.5$S2.2016.NS, 4))
+
+data.frame(Eff.2016.NS = round(table.5$S2.2016.NS, 4),
+           Eff.2016.BS = round(table.5$S2.2016.BS, 4),
+           Win         = round(table.5$S2.2016.BS - table.5$S2.2016.NS, 4))
+
+data.frame(Eff.2016.FS = round(table.5$S2.2016.FS, 4),
+           Eff.2016.BS = round(table.5$S2.2016.BS, 4),
+           Win         = round(table.5$S2.2016.FS - table.5$S2.2016.BS, 4))
+
+
+
+
 # Further investigation
 p.period <- 3
 data.frame(No.split      = res.dndea.ns$eff.s2[,,p.period],
@@ -100,11 +145,6 @@ data.frame(Alpha = res.dndea.ss$alpha[,,1:p.period],
 # Discussions #
 ###############
 
-# In 2016 under t.w of NULL, SS of 0.5:0.3:0.2, BS of 0.2:0.2:0.1
-# DMU 8: FS > BS > NS > SS - How static split deteriorates the efficiency scores
-# - FS > BS from the scenario of sum(df.3d[8,id.z,1:3] * c(0,0.5,0)) (FS) vs sum(df.3d[8,id.z,1:3] * c(0.1,0.2,0.7)) (BS)
-# - NS > SS from the scenario of z of 201 (NS) vs z of 204.2 (sum(df.3d[8,id.z,1:3] * c(0.2,0.3,0.5))) (SS)
-
-# DMU 19: FS (0,0.44,0) FS & (0.15, 0.36, 0.2) BS & (0.2, 0.3, 0.5) SS > NS - How time lag consideration changes the results
+# DMU 19: (0,0.44,0) FS & (0.15, 0.36, 0.2) BS & (0.2, 0.3, 0.5) SS > NS - How time lag consideration changes the results
 
 # DMU 16, 18: No differences - zero weight attached to z
