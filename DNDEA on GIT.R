@@ -46,7 +46,7 @@ table.4 <- data.frame(Min  = apply(df.3d, 2, "min"),
                       Std  = round(apply(df.3d, 2, "sd")))
 
 
-# Table 5. Comparative results
+# Table 5. Comparative results of efficiencies
 # No-split scenario
 res.dndea.ns <- dm.dynamic.network(df.3d[,id.x.s1,], df.3d[,id.y.s1,], df.3d[,id.z,], 
                                    df.3d[,id.x.s2,], df.3d[,id.y.s2,], rts)
@@ -113,7 +113,17 @@ data.frame(Name = table.5$Name[id.ex],
            W.BS = res.dndea.bs$w.s1[id.ex,,3])
 
 
-# Figure 4. Efficiency changes
+# Table 6. Comparative results of time lag factors
+table.6 <- data.frame(Name            = rownames(df.3d),
+                      Free.2014.2016  = res.dndea.fs$gamma[,,1],
+                      Free.2015.2016  = res.dndea.fs$beta [,,2],
+                      Free.2016.2016  = res.dndea.fs$alpha[,,3],
+                      Bound.2014.2016 = res.dndea.bs$gamma[,,1],
+                      Bound.2015.2016 = res.dndea.bs$beta [,,2],
+                      Bound.2016.2016 = res.dndea.bs$alpha[,,3])
+
+
+# Figure 4. Efficiency changes (800*500)
 id.ex     <- c(3, 5, 8, 19, 20, 22)
 id.p      <- 4
 {
@@ -159,4 +169,3 @@ id.p      <- 4
           panel.grid.major.y = element_line(color = "grey"))
   
 }
-
