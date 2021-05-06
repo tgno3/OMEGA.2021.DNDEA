@@ -75,9 +75,9 @@ table.5 <- data.frame(Name          = rownames(df.3d),
 
 # KRICT
 id.ex <- c(19)
-beta  <- round(c(res.dndea.ss$beta [id.ex,,2], res.dndea.fs$beta [id.ex,,2], res.dndea.bs$beta [id.ex,,2]), 2)
-gamma <- round(c(res.dndea.ss$gamma[id.ex,,1], res.dndea.fs$gamma[id.ex,,1], res.dndea.bs$gamma[id.ex,,1]), 2)
-beta + gamma
+co.2015.2016 <- round(c(res.dndea.ss$alpha[id.ex, 2, 2], res.dndea.fs$alpha[id.ex, 2, 2], res.dndea.bs$alpha[id.ex, 2, 2]), 2)
+co.2014.2016 <- round(c(res.dndea.ss$alpha[id.ex, 3, 1], res.dndea.fs$alpha[id.ex, 3, 1], res.dndea.bs$alpha[id.ex, 3, 1]), 2)
+co.2015.2016 + co.2014.2016
 
 
 # KIST and KRISS: BS.2016 < SS.2016 but BS.All > SS.All
@@ -91,15 +91,15 @@ data.frame(Name = table.5$Name[id.ex],
 
 # KICT: FS.2016 > BS.2016 > NS.2016 > SS.2016
 id.ex <- c(8)
-res.fs.pro <- data.frame(Alpha = res.dndea.fs$alpha[id.ex,,3],
-                         Beta  = res.dndea.fs$beta [id.ex,,2],
-                         Gamma = res.dndea.fs$gamma[id.ex,,1])
-res.bs.pro <- data.frame(Alpha = res.dndea.bs$alpha[id.ex,,3],
-                         Beta  = res.dndea.bs$beta [id.ex,,2],
-                         Gamma = res.dndea.bs$gamma[id.ex,,1])
+res.fs.pro <- data.frame(co.2014.2016 = res.dndea.fs$alpha[id.ex, 3, 1],
+                         co.2015.2016 = res.dndea.fs$alpha[id.ex, 2, 2],
+                         co.2016.2016 = res.dndea.fs$alpha[id.ex, 1, 3])
+res.bs.pro <- data.frame(co.2014.2016 = res.dndea.bs$alpha[id.ex, 3, 1],
+                         co.2015.2016 = res.dndea.bs$alpha[id.ex, 2, 2],
+                         co.2016.2016 = res.dndea.bs$alpha[id.ex, 1, 3])
 data.frame(Name = table.5$Name[id.ex],
            Patent.actual = df.3d[id.ex, id.z, 3],
-           Patent.effective.ss = sum(df.3d[id.ex, id.z, 1:3] * c(0.2,0.3,0.5)),
+           Patent.effective.ss = sum(df.3d[id.ex, id.z, 1:3] * c(0.2, 0.3, 0.5)),
            Patent.effective.fs = sum(df.3d[id.ex, id.z, 1:3] * res.fs.pro),
            Patent.effective.bs = sum(df.3d[id.ex, id.z, 1:3] * res.bs.pro))
 
@@ -115,12 +115,12 @@ data.frame(Name = table.5$Name[id.ex],
 
 # Table 6. Comparative results of time lag factors
 table.6 <- data.frame(Name            = rownames(df.3d),
-                      Free.2014.2016  = res.dndea.fs$gamma[,,1],
-                      Free.2015.2016  = res.dndea.fs$beta [,,2],
-                      Free.2016.2016  = res.dndea.fs$alpha[,,3],
-                      Bound.2014.2016 = res.dndea.bs$gamma[,,1],
-                      Bound.2015.2016 = res.dndea.bs$beta [,,2],
-                      Bound.2016.2016 = res.dndea.bs$alpha[,,3])
+                      Free.2014.2016  = res.dndea.fs$alpha[, 3 ,1],
+                      Free.2015.2016  = res.dndea.fs$alpha[, 2, 2],
+                      Free.2016.2016  = res.dndea.fs$alpha[, 1, 3],
+                      Bound.2014.2016 = res.dndea.bs$alpha[, 3, 1],
+                      Bound.2015.2016 = res.dndea.bs$alpha[, 2, 2],
+                      Bound.2016.2016 = res.dndea.bs$alpha[, 1, 3])
 
 
 # Figure 4. Efficiency changes (800*500)
