@@ -48,9 +48,10 @@ dm.dynamic.network <- function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL
   res.p       <- array(NA, c(n,    p, t)) 
   res.a       <- array(NA, c(n,    p, t)) 
   res.b       <- array(NA, c(n,    p, t))
-  res.c       <- array(NA, c(n,    p, t)) 
+  res.c       <- array(NA, c(n,    p, t))
+  res.alpha   <- array(NA, c(n, max.cp + 1, t)) 
   
-  # Pre-emptive phase for non-cooperative model
+  # Preemptive phase for non-cooperative model
   if(type == "nc"){
     for(q in 1:t){res.eff.s1[,,q] <- dm.dea(xdata.s1[,,q], cbind(ydata.s1[,,q], zdata[,,q]), rts, orientation)$eff}  
   }
@@ -81,7 +82,7 @@ dm.dynamic.network <- function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL
       z.ag[[i]] <- cbind(zdata[,,i], zdata[,,i - 1], zdata[,,i - 2])
     }
   }
-
+  
   # Bounds and indices
   if(!is.null(LB)){ # Assuming a single carrryover + max.cp of 3 at this point
     LB.all <- array(LB, c(1, length(LB), t))
@@ -144,7 +145,7 @@ dm.dynamic.network <- function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL
         #                                id.w.s1[i]), "=", res.eff.s1[k,,i])
         #   }
         # }
-
+        
         # (u1y1 +) pz - w - eff.s1 * v1x1 = 0 for DMU o
         if(type == "nc"){
           if(is.null(ydata.s1)){
@@ -208,7 +209,7 @@ dm.dynamic.network <- function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL
           for(j in 1:p){
             # p = a + b + c for all periods
             add.constraint(lp.s2, c(1, -1, -1, -1), 
-                                       indices = c(id.p[(i-1)*p + j], id.a[(i-1)*p + j], id.b[(i-1)*p + j], id.c[(i-1)*p + j]), "=", 0)
+                           indices = c(id.p[(i-1)*p + j], id.a[(i-1)*p + j], id.b[(i-1)*p + j], id.c[(i-1)*p + j]), "=", 0)
             
             # b & c == 0 when no carry-over
             if(max.cp == 0){
@@ -268,7 +269,7 @@ dm.dynamic.network <- function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL
             }      
           }
         }
-
+        
       }else{ 
         # Constraints for output-orientation: TBA
       }
@@ -307,7 +308,7 @@ dm.dynamic.network <- function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL
     }else{
       res.temp.pzw     <- colSums(matrix(res.all[id.u.s2], ncol = t) * ydata.s2[k,,]) - res.all[id.w.s2]
       res.eff.s2[k,,]  <- if(is.null(xdata.s2) & alpha[1] == 1) res.temp.pzw/res.eff.s1[k,,] else res.temp.pzw
-      res.eff.sys[k,,] <- res.eff.s1[k,,] * res.eff.s2[k,,]
+      res.eff.sys[k,,] <- (res.eff.s1[k,,] + res.eff.s2[k,,]) / 2
     }
     res.v.s1[k,,]      <- res.all[id.v.s1]
     res.u.s1[k,,]      <- if(is.null(ydata.s1)) NULL else res.all[id.u.s1]
@@ -319,10 +320,16 @@ dm.dynamic.network <- function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL
     res.a[k,,]         <- res.all[id.a]
     res.b[k,,]         <- res.all[id.b]
     res.c[k,,]         <- res.all[id.c]
+    res.alpha[k, 1,]   <- res.all[id.a]/res.all[id.p]
+    if(max.cp != 0){
+      res.alpha[k, 2,] <- res.all[id.b]/res.all[id.p]
+      res.alpha[k, 3,] <- res.all[id.c]/res.all[id.p]  
+    }
+    
   }
   results <- list(eff.sys = res.eff.sys, eff.s1 = res.eff.s1, eff.s2 = res.eff.s2, 
                   v.s1 = res.v.s1, u.s1 = res.u.s1, w.s1 = res.w.s1,
                   v.s2 = res.v.s2, u.s2 = res.u.s2, w.s2 = res.w.s2, 
-                  p = res.p, a = res.a, b = res.b, c = res.c, alpha = res.a/res.p, beta = res.b/res.p, gamma = res.c/res.p)
+                  p = res.p, a = res.a, b = res.b, c = res.c, alpha = res.alpha)
   return(results)
 }
