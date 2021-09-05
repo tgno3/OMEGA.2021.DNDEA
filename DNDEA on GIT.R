@@ -46,7 +46,17 @@ table.4 <- data.frame(Min  = apply(df.3d, 2, "min"),
                       Std  = round(apply(df.3d, 2, "sd")))
 
 
-# Table 5. Comparative results of efficiencies
+# Table 5. Mean comparison of efficiency DMUs
+id.eff.sys <- c(1, 4, 23)
+id.eff.s1  <- c(5, 13, 14, 18)
+id.eff.s2  <- c(6, 11, 12, 17)
+id.others  <- setdiff(1:23, c(id.eff.sys, id.eff.s1, id.eff.s2, 8, 19))
+table.5    <- data.frame(Sys.Eff = round(apply(df.3d[id.eff.sys,,3], 2, "mean")),
+                         S1.Eff  = round(apply(df.3d[id.eff.s1 ,,3], 2, "mean")),
+                         S2.Eff  = round(apply(df.3d[id.eff.s2 ,,3], 2, "mean")),
+                         Others  = round(apply(df.3d[id.others ,,3], 2, "mean")))
+
+# Table 6. Comparative results of efficiencies
 # No-split scenario
 res.dndea.ns <- dm.dynamic.network(df.3d[,id.x.s1,], df.3d[,id.y.s1,], df.3d[,id.z,], 
                                    df.3d[,id.x.s2,], df.3d[,id.y.s2,], rts)
@@ -60,7 +70,7 @@ res.dndea.fs <- dm.dynamic.network(df.3d[,id.x.s1,], df.3d[,id.y.s1,], df.3d[,id
 res.dndea.bs <- dm.dynamic.network(df.3d[,id.x.s1,], df.3d[,id.y.s1,], df.3d[,id.z,], 
                                    df.3d[,id.x.s2,], df.3d[,id.y.s2,], rts, alpha = "free", max.cp = 2, LB = c(0.2, 0.2, 0.1))
 
-table.5 <- data.frame(Name          = rownames(df.3d),
+table.6 <- data.frame(Name          = rownames(df.3d),
                       S1.overall    = apply(res.dndea.ns$eff.s1, 1, "mean"),
                       S1.2016       = res.dndea.ns$eff.s1[,,3],
                       S2.overall.NS = apply(res.dndea.ns$eff.s2, 1, "mean"),
@@ -82,7 +92,7 @@ co.2015.2016 + co.2014.2016
 
 # KIST and KRISS: BS.2016 < SS.2016 but BS.All > SS.All
 id.ex <- c(14, 20)
-data.frame(Name = table.5$Name[id.ex],
+data.frame(Name = table.6$Name[id.ex],
            Eff.2016.SS = round(res.dndea.ss$eff.s2[id.ex,,3], 4),
            Eff.2016.BS = round(res.dndea.bs$eff.s2[id.ex,,3], 4),
            Eff.All.SS  = round(apply(res.dndea.ss$eff.s2[id.ex,,], 1, "mean"), 4),
@@ -97,7 +107,7 @@ res.fs.pro <- data.frame(co.2014.2016 = res.dndea.fs$alpha[id.ex, 3, 1],
 res.bs.pro <- data.frame(co.2014.2016 = res.dndea.bs$alpha[id.ex, 3, 1],
                          co.2015.2016 = res.dndea.bs$alpha[id.ex, 2, 2],
                          co.2016.2016 = res.dndea.bs$alpha[id.ex, 1, 3])
-data.frame(Name = table.5$Name[id.ex],
+data.frame(Name = table.6$Name[id.ex],
            Patent.actual = df.3d[id.ex, id.z, 3],
            Patent.effective.ss = sum(df.3d[id.ex, id.z, 1:3] * c(0.2, 0.3, 0.5)),
            Patent.effective.fs = sum(df.3d[id.ex, id.z, 1:3] * res.fs.pro),
@@ -106,15 +116,15 @@ data.frame(Name = table.5$Name[id.ex],
 
 # KAERI, KISTI, KIT and KRIBB: no change
 id.ex <- c(2, 15, 16, 18)
-data.frame(Name = table.5$Name[id.ex],
+data.frame(Name = table.6$Name[id.ex],
            W.NS = res.dndea.ns$w.s1[id.ex,,3],
            W.SS = res.dndea.ss$w.s1[id.ex,,3],
            W.FS = res.dndea.fs$w.s1[id.ex,,3],
            W.BS = res.dndea.bs$w.s1[id.ex,,3])
 
 
-# Table 6. Comparative results of time lag factors
-table.6 <- data.frame(Name            = rownames(df.3d),
+# Table 7. Comparative results of time lag factors
+table.7 <- data.frame(Name            = rownames(df.3d),
                       Free.2014.2016  = res.dndea.fs$alpha[, 3 ,1],
                       Free.2015.2016  = res.dndea.fs$alpha[, 2, 2],
                       Free.2016.2016  = res.dndea.fs$alpha[, 1, 3],
