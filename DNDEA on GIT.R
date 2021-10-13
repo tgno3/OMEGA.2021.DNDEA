@@ -85,9 +85,10 @@ table.6 <- data.frame(Name          = rownames(df.3d),
 
 # KRICT
 id.ex <- c(19)
-co.2015.2016 <- round(c(res.dndea.ss$alpha[id.ex, 2, 2], res.dndea.fs$alpha[id.ex, 2, 2], res.dndea.bs$alpha[id.ex, 2, 2]), 2)
-co.2014.2016 <- round(c(res.dndea.ss$alpha[id.ex, 3, 1], res.dndea.fs$alpha[id.ex, 3, 1], res.dndea.bs$alpha[id.ex, 3, 1]), 2)
-co.2015.2016 + co.2014.2016
+ss.co.2016 <- df.3d[id.ex, 5, 1:3] * c(res.dndea.ss$alpha[id.ex,3,1], res.dndea.ss$alpha[id.ex,2,2], res.dndea.ss$alpha[id.ex,1,3])
+fs.co.2016 <- df.3d[id.ex, 5, 1:3] * c(res.dndea.fs$alpha[id.ex,3,1], res.dndea.fs$alpha[id.ex,2,2], res.dndea.fs$alpha[id.ex,1,3])
+bs.co.2016 <- df.3d[id.ex, 5, 1:3] * c(res.dndea.bs$alpha[id.ex,3,1], res.dndea.bs$alpha[id.ex,2,2], res.dndea.bs$alpha[id.ex,1,3])
+data.frame(Fixed = sum(ss.co.2016), Free = sum(fs.co.2016), Bounded = sum(bs.co.2016), Actual = df.3d[id.ex, 5, 3])
 
 
 # KIST and KRISS: BS.2016 < SS.2016 but BS.All > SS.All
